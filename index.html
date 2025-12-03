@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trading Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>  .container {
            width :80%;
             margin: 0 auto;
@@ -57,12 +58,34 @@
         padding: 10px; border-radius: 8px; background: #334155; margin-bottom: 10px;
     }
 
+    .modal-pagination {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-top: 15px; font-size: 14px;
+    }
+
     /* Weekly Summary */
     .week-box { background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-top:10px; }
     .week-amount { font-size:24px; color:#4ade80; }
 
+    /* Scrollable Recent Trades */
+    #recent-trades-list {
+        max-height: 250px; /* Adjust this height to fit ~6 trades */
+        overflow-y: auto;
+    }
+
     /* Simple Chart Placeholder */
     .chart { width:100%; height:150px; background:rgba(255,255,255,0.08); border-radius:10px; margin-top:10px; display:flex; align-items:center; justify-content:center; color:#94a3b8; }
+  </style>
+  <style>
+    .filter-btn {
+        background: #334155; border: none; color: white;
+        padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-left: 5px;
+    }
+    .filter-btn:hover { background: #475569; }
+    .filter-btn.active {
+        background: #3b82f6; /* Blue for active filter */
+        font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -100,12 +123,44 @@
     </div>
 
     <div class="card">
-      <div class="section-title">Performance Breakdown</div>
-      <div class="chart">[ Chart Placeholder ]</div>
+      <div class="section-title">Monthly Cumulative Profit</div>
+      <div style="height: 200px; position: relative;">
+        <canvas id="cumulative-profit-chart"></canvas>
+      </div>
     </div>
 
     <div class="card">
-      <div class="section-title">Recent Trades</div>
+      <div class="section-title">Performance Breakdown</div>
+        <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+            <div style="position: relative; height:150px; width:150px;">
+                <canvas id="performance-chart"></canvas>
+            </div>
+            <div style="flex-grow: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                <div>
+                    <div style="font-size: 14px; color: #94a3b8;">Total Profit</div>
+                    <div id="total-profit" style="font-size: 22px; font-weight: bold;">$0.00</div>
+                </div>
+                <div>
+                    <div style="font-size: 14px; color: #94a3b8;">Win Rate</div>
+                    <div id="win-rate" style="font-size: 24px; font-weight: bold;">N/A</div>
+                </div>
+                <div>
+                    <div style="font-size: 14px; color: #94a3b8;">Profit Factor</div>
+                    <div id="profit-factor" style="font-size: 22px; font-weight: bold;">N/A</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div class="section-title" style="margin-bottom: 0;">Recent Trades</div>
+        <div id="trade-filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="Long">Long</button>
+            <button class="filter-btn" data-filter="Short">Short</button>
+        </div>
+      </div>
       <div id="recent-trades-list">
         <p>No trades yet. Add one using the form above!</p>
       </div>
@@ -122,6 +177,11 @@
           <div id="modal-body">
               <!-- Trade details will be injected here by JavaScript -->
           </div>
+          <div id="modal-pagination-controls" class="modal-pagination" style="display: none;">
+              <button id="modal-prev-btn" class="filter-btn">Prev</button>
+              <span id="modal-page-indicator"></span>
+              <button id="modal-next-btn" class="filter-btn">Next</button>
+          </div>
           <div style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px;">
               <div class="section-title">Add New Trade for this Date</div>
               <form id="add-trade-form" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
@@ -131,6 +191,8 @@
                       <option value="Short">Short</option>
                   </select>
                   <input type="number" id="trade-profit" placeholder="Profit/Loss" step="0.01" required style="padding: 8px; border-radius: 5px; border: 1px solid #334155; background: #1e293b; color: white; width: 120px;">
+                  <input type="number" id="trade-lotsize" placeholder="Lot Size" step="0.01" required style="padding: 8px; border-radius: 5px; border: 1px solid #334155; background: #1e293b; color: white; width: 100px;">
+                  <input type="number" id="trade-price" placeholder="entry price" step="0.01" required style="padding: 8px; border-radius: 5px; border: 1px solid #334155; background: #1e293b; color: white; width: 100px;">
                   <button type="submit" style="background: #10b981; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer;">Add Trade</button>
               </form>
           </div>
@@ -139,4 +201,6 @@
    <script src="trading.js"></script>
 </body>
 </html>
+
+
 
