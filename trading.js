@@ -208,6 +208,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const losses = tradesThisMonth.filter(t => t.status === 'Loss').length;
         const totalTrades = tradesThisMonth.length;
         const totalProfit = tradesThisMonth.reduce((sum, trade) => sum + trade.profit, 0);
+        
+        const allWins = tradesThisMonth.filter(t => t.profit > 0).map(t => t.profit);
+        const allLosses = tradesThisMonth.filter(t => t.profit < 0).map(t => t.profit);
+
+        const biggestWin = allWins.length > 0 ? Math.max(...allWins) : 0;
+        const biggestLoss = allLosses.length > 0 ? Math.min(...allLosses) : 0;
+
+        const grossProfit = allWins.reduce((sum, profit) => sum + profit, 0);
+        const grossLoss = Math.abs(allLosses.reduce((sum, loss) => sum + loss, 0));
 
         // Update KPI text
         const totalProfitEl = document.getElementById('total-profit');
@@ -221,6 +230,22 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             winRateEl.textContent = 'N/A';
         }
+
+        const profitFactorEl = document.getElementById('profit-factor');
+        if (grossLoss > 0) {
+            const profitFactor = grossProfit / grossLoss;
+            profitFactorEl.textContent = profitFactor.toFixed(2);
+        } else if (grossProfit > 0 && grossLoss === 0) {
+            profitFactorEl.textContent = '∞'; // Infinite profit factor
+        } else {
+            profitFactorEl.textContent = 'N/A';
+        }
+
+        const biggestWinEl = document.getElementById('biggest-win');
+        biggestWinEl.textContent = `$${biggestWin.toFixed(2)}`;
+
+        const biggestLossEl = document.getElementById('biggest-loss');
+        biggestLossEl.textContent = `$${biggestLoss.toFixed(2)}`;
 
         // Update Chart
         const ctx = document.getElementById('performance-chart').getContext('2d');
@@ -485,4 +510,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial render of all components
     rerenderAll();
 });
+
+
 
